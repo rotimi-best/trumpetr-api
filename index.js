@@ -44,7 +44,7 @@ app.post('/login', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Username and password required' });
   }
 
-  const user = await getUser({ nickname, password });
+  const user = await getUser({ nickname });
 
   if (!len(user)) {
     return res.status(400).json({ success: false, message: 'User not found' });
@@ -77,7 +77,6 @@ app.post('/register', async (req, res) => {
   const newUser = await addUser({
     fullname,
     nickname,
-    password
   })
 
   res.json({
@@ -87,7 +86,7 @@ app.post('/register', async (req, res) => {
 });
 
 // Add new job to the data store
-app.post('/post', async (req, res) => {
+app.post('/posts', async (req, res) => {
   const data = JSON.parse(req.body.data);
 
   log('JOB GOTTEN FROM REQUEST BUT NOT ADDING', data);
@@ -98,7 +97,7 @@ app.post('/post', async (req, res) => {
 });
 
 // Get all posts in the data store
-app.get('/post', async (req, res) => {
+app.get('/posts', async (req, res) => {
   console.log('Get all jobs in the data store');
 
   const posts = await getPost({});
