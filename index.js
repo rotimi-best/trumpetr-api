@@ -7,7 +7,7 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const connectToDb = require('./db/connect')
 
-const { getUser, addUser } = require('./db/cruds/User')
+const { getUser, addUser, deleteUser } = require('./db/cruds/User')
 const { getPost, addPost } = require('./db/cruds/Post')
 
 const len = val => val.length;
@@ -44,10 +44,10 @@ app.post('/login', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Username and password required' });
   }
 
-  const user = await getUser({ nickname });
+  const user = await getUser({ nickname, password });
 
   if (!len(user)) {
-    return res.status(400).json({ success: false, message: 'User not found' });
+    return res.status(400).json({ success: false, message: 'Username or Password is wrong' });
   }
 
   res.json({
@@ -77,7 +77,10 @@ app.post('/register', async (req, res) => {
   const newUser = await addUser({
     fullname,
     nickname,
+    password,
   })
+
+  delete newUser.password;
 
   res.json({
     success: true,
