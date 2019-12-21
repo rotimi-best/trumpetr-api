@@ -1,8 +1,6 @@
 const mongoose = require('mongoose')
 const { MONGO_URI } = require('../helpers/dbConfig')
 
-console.log("MONGO_URI", MONGO_URI);
-
 module.exports = async () => {
     try {
         mongoose.connect(MONGO_URI, {

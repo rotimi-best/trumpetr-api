@@ -2,7 +2,7 @@ const { PORT = 9000 } = process.env
 require('dotenv').config();
 require('./helpers/additionalInit')
 
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Types;
 
 const express = require('express')
@@ -11,7 +11,7 @@ const bodyParser = require('body-parser')
 const connectToDb = require('./db/connect')
 
 const { getUser, addUser } = require('./db/cruds/User')
-const { getPost, addPost } = require('./db/cruds/Post')
+const { getPost, addPost, updatePost } = require('./db/cruds/Post')
 
 const len = val => val.length;
 
@@ -74,7 +74,7 @@ app.post('/register', async (req, res) => {
   const user = await getUser({ nickname });
 
   if (len(user)) {
-    return res.status(400).json({ success: false, message: 'User already exists' });
+    return res.status(400).json({ success: false, message: 'Nickname already exists' });
   }
 
   const newUser = await addUser({
@@ -126,13 +126,64 @@ app.get('/posts', async (req, res) => {
 });
 
 // TODO: React to a post
-app.put('/post/react/:id', async (req, res) => {
-  const { id } = req.params;
+app.put('/post/react/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { userId, type } = req.body;
 
-  const post = await getPost({ _id: ObjectId(id) });
+  const allowedTypes = [
+    'lovedBy',
+    'suprisedBy',
+    'thankfulBy',
+  ];
 
-  console.log(post)
-  res.json({ success: true });
+  if (!allowedTypes.includes(type)) {
+    return res.status(400).json({ success: false, message: 'Reaction is not valid' });
+  }
+  if (!ObjectId.isValid(postId)) {
+    return res.status(400).json({ success: false, message: 'Invalid postId' });
+  }
+
+  const [post] = await getPost({ _id: ObjectId(postId) });
+  if (!post) {
+    return res.status(404).json({ success: false, message: 'Post not found' });
+  }
+
+  const { lovedBy, suprisedBy, thankfulBy } = post;
+
+  const fieldToUpdate = reactionType => {
+    switch(reactionType) {
+      case allowedTypes[0]:
+        return {
+          lovedBy: lovedBy.includes(userId)
+            ? lovedBy.filter(id => id !== userId)
+            : lovedBy.concat(userId)
+        }
+      case allowedTypes[1]:
+        return {
+          suprisedBy: suprisedBy.includes(userId)
+            ? suprisedBy.filter(id => id !== userId)
+            : suprisedBy.concat(userId)
+        }
+      case allowedTypes[2]:
+        return {
+          thankfulBy: thankfulBy.includes(userId)
+            ? thankfulBy.filter(id => id !== userId)
+            : thankfulBy.concat(userId)
+        }
+      default:
+        return {};
+    }
+  }
+
+  const updateField = fieldToUpdate(type);
+  post[type] = updateField[type]
+
+  await updatePost({ _id: ObjectId(postId) }, updateField);
+
+  res.json({
+    success: true,
+    post,
+  });
 });
 
 
