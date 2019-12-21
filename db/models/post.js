@@ -6,15 +6,12 @@ const {
 const timestamp = require('mongoose-timestamp')
 
 const PostSchema = new Schema({
-  userId: {
-    type: ObjectId,
-    default: null,
-  },
-  bibleverse: String,
-  lessons: Array,
+  userId: ObjectId,
+  read: String,
+  lesson: String,
   lovedBy: Array,
-  smiledBy: Array,
-  rocketBy: Array,
+  suprisedBy: Array,
+  thankfulBy: Array,
 });
 
 PostSchema.plugin(timestamp)
